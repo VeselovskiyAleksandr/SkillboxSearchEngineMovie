@@ -1,0 +1,34 @@
+
+ //функция установки курсора в заданное положение
+	  void gotoxy(short x, short y)
+	  {
+		  HANDLE StdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		  COORD  coord = { x, y };
+		  SetConsoleCursorPosition(StdOut, coord);
+	  }
+
+	  short x0 = 0, y0 = 0;
+
+//функция отображения поля ввода с курсором
+	  void inputFieldImageFunction(short& x0, short& y0)
+	  {
+		  cout << "\n" << "                                      Information about domestic and foreign films" << "\n" << "\n";
+		  cout << "               Search query field" << "\n" << "\n";
+	  char ch1 = 61;
+	  auto field = [](char& ch1)
+		  {
+			  for (int i = 0; i < 150; ++i)
+				  cout << ch1;
+				  cout << "\n";
+		  };
+//вывод положения курсора
+		  CONSOLE_SCREEN_BUFFER_INFO bi;
+		  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &bi);
+		  x0 = bi.dwCursorPosition.X;
+		  y0 = bi.dwCursorPosition.Y;
+		  cout << "\n";
+//		  field>
+		  for (int i = 0; i < 150; ++i)
+			  cout << ch1;
+ 		      cout << "\n";
+	  }
