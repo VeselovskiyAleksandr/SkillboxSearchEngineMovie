@@ -1,3 +1,4 @@
+//Должен быть подключен #include <windous.h>
 
  //функция установки курсора в заданное положение
 	  void gotoxy(short x, short y)
@@ -32,3 +33,11 @@
 			  cout << ch1;
  		      cout << "\n";
 	  }
+	  //подсчёт количества символов в файле
+	  	 streampos begin, end;
+	 ifstream myfile("resources/Ivan Vasilievich Changes Profession.txt");
+	 begin = myfile.tellg();
+	 myfile.seekg(0, ios::end);
+	 end = myfile.tellg();
+	 myfile.close();
+	 cout<<"\n" << "Length: " << (end - begin) << " symbols.\n";

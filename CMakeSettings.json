@@ -10,14 +10,7 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "intelliSenseMode": "windows-msvc-x64",
-      "variables": [
-        {
-          "name": "JSON_SystemInclude",
-          "value": "True",
-          "type": "BOOL"
-        }
-      ]
+      "intelliSenseMode": "windows-msvc-x64"
     }
   ]
 }

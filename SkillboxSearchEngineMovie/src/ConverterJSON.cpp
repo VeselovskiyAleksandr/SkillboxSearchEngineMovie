@@ -1,12 +1,9 @@
-#include <iostream>
-#include <string>
+
 #include <fstream>
-#include <map>
 #include <vector>
 #include <exception>
 #include "ConverterJSON.h"
 #include "nlohmann/json.hpp"
-#include <windows.h>
 #include "Configuration.cpp"
 
 using namespace std;
@@ -14,7 +11,7 @@ using namespace std;
   class ConverterJSON {
 public: ConverterJSON() = default;
 	  Configuration configuration;
-	  vector<string> GetRequests;
+	  vector<string> getRequests;
 
 //функция начала работы движка
 	  void start()
@@ -27,11 +24,27 @@ public: ConverterJSON() = default;
 			  throw exception();
 	  }
 
-		  for (int i = 0; i < Counter<Configuration>::getCounter(); i++)
+		  for (int i = 0; i < configurationCounter<Configuration>::getConfigurationCounter(); i++)
 		  {
 			  cnfile >> config;
 	      }
 		  cout << config["config"] << "\n";
+		  for (const auto& item : config["config"].items())
+		  {
+			  if (item.key() == "name")
+			  {
+				  configuration.name = item.value();
+			  }
+			  else if (item.key() == "version")
+			  {
+				  configuration.version = item.value();
+			  }
+			  else if (item.key() == "maxResponses")
+			  {
+				  configuration.maxResponses = item.value();
+			  }
+		  }
+		  configuration.maxRespons =stoi(configuration.maxResponses);
 		  for (const auto& item : config["files"].items())
 		  {
 			  int i = stoi(item.key());
@@ -40,6 +53,7 @@ public: ConverterJSON() = default;
 		  }
 		  cnfile.close();
 	  };
+
 
 //функция проверки наличия файла
 	  bool FileIsExist(string filePath)
@@ -53,47 +67,131 @@ public: ConverterJSON() = default;
 		  fin.close();
 		  return isExist;
 	  }
-	  
 
- 
+	  //функция проверки открытия файла
+	  void openFile(string path)
+	  {
+		  if (FileIsExist(path))
+		  {
+			  ofstream file;
+			  file.open(path, std::ofstream::out | std::ofstream::trunc);
+			  file.close();
+		  }
+		  else
+		  {
+			  ofstream reqFile(path);
+			  reqFile.close();
+		  }
+	  };
+	  
 //функция ввода запроса
-	  void RequerysInputFunction(vector<string>& GetRequests)
+	  void requerysInputFunction(vector<string>& getRequests)
+//	  void requerysInputFunction()
 	  {
 		  cout << "\n" << "                                      Information about domestic and foreign films" << "\n" << "\n";
 		  cout << "               Search query field" << "\n" << "\n";
 		  string requerie = "";
 		  getline(cin, requerie);
-		  if (requerie.length() > 80)
-	      requerie.erase(requerie.length() - 80);
-		  cout << "\n" << "\n";
-		  GetRequests.push_back(requerie);
+		  if (requerie.length() > configuration.maxStrRequestLength)
+	      requerie.erase(requerie.length() - configuration.maxStrRequestLength);
+		  cout << "\n";
+		  getRequests.push_back(requerie);
 		  requerie = "";
 		  ofstream reqfile("requests.json");
-		  nlohmann::json reqconf;
-		  reqconf["number"] = GetRequests.size();
-		  reqconf["request"] = GetRequests[GetRequests.size() - 1];
-		  reqfile << reqconf;
+		  nlohmann::json reqconfig;
+		  reqconfig["number"] = getRequests.size();
+		  reqconfig["request"] = getRequests[getRequests.size() - 1];
+		  reqfile << reqconfig;
 		  reqfile.close();
 	  }
 
-	//		  ofstream reqfile("requests.json");
-			  //	  map <int, string> str;
-	//		  int counter = 0;
-	//		  nlohmann::json conf;
-			  //		  for (const auto& item : conf["files"].items()) {
-	//		  for (auto it = GetRequests.begin(); it != GetRequests.end(); ++it) {
-		//		  conf["number"] = counter;
-			//	  conf["request"] = GetRequests[counter];
-				//  ++counter;
-				  //		  int i = stoi(item.key());
-					  //	  pair<int, string> oPair(i, item.value());
-				  //		  str.insert(oPair);
-				  //		  anfile >> conf;
-	//		  }
-			  //	  conf["requests"] << conf;
-		//	  reqfile << conf;
+	  //функция поиска ответов
 
-		//	  reqfile.close();
+	  void searchAnswersFunction()
+	  {
+		  for (int i = 0; i < getRequests.size(); ++i)
+		  {
+			  static const int bufferValue = configuration.filesValue;
+			  char movieBuffer[bufferValue];
+			  multimap<int, string> searchResult;
+			  for (auto it = configuration.movieTitles.begin(); it != configuration.movieTitles.end(); ++it)
+			  {
+				  string moviePath = it->second;
+				  ifstream file;
+				  file.open(moviePath);
+				  file.seekg(0);
+				  if (!file.is_open())
+				  {
+					  cerr << "\n" << "The file is not found." << "\n";
+				  }
+
+				  ifstream requestFile("requests.json");
+				  nlohmann::json configr;
+
+				  for (int i = 0; i < configurationCounter<Configuration>::getConfigurationCounter(); i++)
+				  {
+					  requestFile >> configr;
+				  }
+				  requestFile.close();
+				  string strRequest = configr["request"];
+				  const char* cstrRequest = strRequest.c_str();
+				  int coincidCounter = 0;
+				  int posRequest = 0;
+				  int lenRequest = strRequest.length();
+				  int lenBuffer = configuration.filesValue;
+				  while (file)
+				  {
+					  int fileSize = sizeof(movieBuffer);
+					  fill(movieBuffer, movieBuffer + fileSize, 0);
+					  file.read(movieBuffer, sizeof(movieBuffer) - 1);
+					  cout << "\n";
+					  cout << movieBuffer;
+
+					  for (int posBuffer = 0; posBuffer < lenBuffer - lenRequest; ++posBuffer)
+					  {
+						  if (movieBuffer[posBuffer] == cstrRequest[posRequest])
+						  {
+							  posRequest++;
+							  if (posRequest == lenRequest)
+							  {
+								  coincidCounter++;
+							  }
+
+						  }
+						  else
+						  {
+							  posBuffer -= posRequest;
+							  posRequest = 0;
+						  }
+					  }
+				  }
+				  searchResult.insert({ coincidCounter, moviePath });
+				  coincidCounter = 0;
+				  if (movieBuffer[file.gcount()])
+				  {
+					  break;
+				  }
+				  file.close();
+			  }
+			  int countResponses = 0;
+			  for (auto it = searchResult.crbegin(); it != searchResult.crend(); ++it)
+			  {
+				  if (countResponses < configuration.maxRespons)
+				  {
+					  if (it->first > 0)
+						  cout << "\n" << it->first << " " << it->second;
+				  }
+				  else
+				  {
+					  searchResult.clear();
+					  break;
+				  }
+
+				  countResponses++;
+			  }
+		  }
+	  }
+
 
 	  // Метод получения содержимого файлов.
 	  vector<string> GetTextDocuments()

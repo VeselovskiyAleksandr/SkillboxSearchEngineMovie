@@ -10,5 +10,4 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 # Включите подпроекты.
 add_subdirectory ("SkillboxSearchEngineMovie")
-#add_subdirectory ("functions")
 add_subdirectory(nlohmann.json)
